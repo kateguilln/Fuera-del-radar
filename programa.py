@@ -9,6 +9,12 @@ import os
 velocidad = 3
 puntos = 0
 
+# Colores
+blanco = (0, 0, 0)
+negro = (255, 255, 255)
+dorado = (182, 143, 64)
+verde = (215, 252, 212)
+
 reloj = pygame.time.Clock()  # Rastrer el tiempo
 pygame.init()  # Inicialización del juego
 # Ruta de la carpeta de descarga
@@ -23,6 +29,8 @@ pygame.display.set_caption("Fuera del Radar")  # Nombre del juego
 pantalla = pygame.display.get_surface()
 # Cargar fondo
 fondo = pygame.image.load(carpeta + "/sprites/fondo.png").convert()
+# Imagen del menu
+menu = pygame.image.load(carpeta + "/sprites/menu.png").convert()
 
 
 # Definición de función que se encarga de mostrar el texto en la pantalla
@@ -116,7 +124,7 @@ class Asteroide(pygame.sprite.Sprite):
         self.linea = linea
 # Definición de la imagen
         self.image = pygame.image.load(carpeta +
-                                       "/sprites/obs4.png"
+                                       "/sprites/obs1.png"
                                        ).convert()
 # Comando para eliminar fondo negro de la imagen
         self.image.set_colorkey((0, 0, 0))
@@ -244,73 +252,191 @@ for estrella in range(0, 1):
     lista_de_estrellas.add(estrella1)  # Agregar el astoroide1 a la lista
     sprites.add(estrella1)  # Agregar el astoroide1 a los sprites
 
-# Bucle de ejecución del juego
-while True:
-    reloj.tick(80)  # Velocidad de movimiento de la nave en fps
-    for evento in pygame.event.get():
-        if evento.type == pygame.QUIT:
-            exit()
-# Se les da movimiento a los asteroides
-    for asteroide in lista_de_asteroides:
-        asteroide.movimiento_frente()
-# Se les da movimiento a las estrellas
-    for estrella in lista_de_estrellas:
-        estrella.movimiento_frente()
-# Actualice los sprites de la clase Group
-    sprites.update()
-# Se verifican las colisiones entre los asteroides y la nave
-    colisiones = pygame.sprite.spritecollide(nave, lista_de_asteroides, True)
-    # Al detectar una colision se crea un nuevo asteroide, porque sino van
-    # desapareciendo y se reduce la barra de vida un cuarto
-    for colision in colisiones:
-        linea_asteroide = random.randrange(1, 4)
-        linea_x = 0
-        if linea_asteroide == 1:
-            linea_x = 360
-        elif linea_asteroide == 2:
-            linea_x = 460
-        elif linea_asteroide == 3:
-            linea_x = 560
-        elif linea_asteroide == 4:
-            linea_x = 660
 
-        astoroide1 = Asteroide(tipo, linea)
-        lista_de_asteroides.add(astoroide1)  # Agregar el astoroide1 a la lista
-        sprites.add(astoroide1)
-        nave.vida -= 25
-        # Si la vida de la nave es 0 o menor se acaba el juego
-        if nave.vida <= 0:
-            exit()
-# Se verifican las colisiones entre los asteroides y la nave
-    puntaje = pygame.sprite.spritecollide(nave, lista_de_estrellas, True)
-    # Al detectar una colision se crea un nuevo asteroide, porque sino van
-    # desapareciendo y se reduce la barra de vida un cuarto
-    for punto in puntaje:
-        linea_estrella = random.randrange(1, 4)
-        linea = 0
-        if linea_estrella == 1:
-            linea = 360
-        elif linea_estrella == 2:
-            linea = 460
-        elif linea_estrella == 3:
-            linea = 560
-        elif linea_estrella == 4:
-            linea = 660
+# Definición de la clase Boton, la cual se va a utilizar cada vez que se quiera
+# crear un botón nuevo. Recibe como argumentos la imagen (puede ser None), una
+# tupla (obligatorio) que tiene como primer elemento la posición en x, y un
+# segundo elemento que tiene la posición en y, el texto, la fuente para ese
+# texto y el color de ese texto.
+class Boton():
+    def __init__(self, imagen, pos, texto_en, fuente, color_base):
+        self.image = imagen
+        self.x = pos[0]
+        self.y = pos[1]
+        self.fuente = fuente
+        self.color_base = color_base
+        self.texto_en = texto_en
+        self.text = self.fuente.render(self.texto_en, True, self.color_base)
+        if self.image is None:
+            self.image = self.text
+        self.rect = self.image.get_rect(center=(self.x, self.y))
+        self.text_rect = self.text.get_rect(center=(self.x, self.y))
 
-        estrella1 = Estrellas(linea)
-        lista_de_estrellas.add(estrella1)  # Agregar el astoroide1 a la lista
-        sprites.add(estrella1)
-        puntos += 1
-        velocidad += 1
+    def actualizar(self, pantalla):  # Muestra los botones en pantalla
+        if self.image is not None:
+            pantalla.blit(self.image, self.rect)
+        pantalla.blit(self.text, self.text_rect)
 
-# Agrego el fondo de pantalla y agregue los "sprites"
-    pantalla.blit(fondo, [0, 0])
-    sprites.draw(pantalla)
+    def chequar_click(self, posicion):  # Compprueba si el botón fue clickeado
+        if (posicion[0] in range(self.rect.left, self.rect.right)
+                and posicion[1] in range(self.rect.top, self.rect.bottom)):
+            return True
+        return False
 
-    dibujar_vida_nave(pantalla, 5, 5, nave.vida)
-# Marcador
-    texto_en_pantalla(pantalla, 'Marcador: ' + str(puntos), 25, 73, 17)
-# Muestre lo anterior en pantalla
-    pygame.display.flip()
 
+# Esta función contiene el bucle principal de funcionamiento del juego
+def bucle_principal():
+    global puntos, velocidad
+    while True:
+        reloj.tick(80)  # Velocidad de movimiento de la nave en fps
+        for evento in pygame.event.get():
+            if evento.type == pygame.QUIT:
+                exit()
+    # Se les da movimiento a los asteroides
+        for asteroide in lista_de_asteroides:
+            asteroide.movimiento_frente()
+    # Se les da movimiento a las estrellas
+        for estrella in lista_de_estrellas:
+            estrella.movimiento_frente()
+    # Actualice los sprites de la clase Group
+        sprites.update()
+    # Se verifican las colisiones entre los asteroides y la nave
+        colisiones = pygame.sprite.spritecollide(nave,
+                                                 lista_de_asteroides, True)
+        # Al detectar una colision se crea un nuevo asteroide, porque sino van
+        # desapareciendo y se reduce la barra de vida un cuarto
+        for colision in colisiones:
+            linea_asteroide = random.randrange(1, 4)
+            linea_x = 0
+            if linea_asteroide == 1:
+                linea_x = 360
+            elif linea_asteroide == 2:
+                linea_x = 460
+            elif linea_asteroide == 3:
+                linea_x = 560
+            elif linea_asteroide == 4:
+                linea_x = 660
+
+            astoroide1 = Asteroide(tipo, linea_x)
+            lista_de_asteroides.add(astoroide1)
+            sprites.add(astoroide1)
+            nave.vida -= 25
+            # Si la vida de la nave es 0 o menor se acaba el juego
+            if nave.vida <= 0:
+                exit()
+    # Se verifican las colisiones entre los asteroides y la nave
+        puntaje = pygame.sprite.spritecollide(nave, lista_de_estrellas, True)
+        # Al detectar una colision se crea un nuevo asteroide, porque sino van
+        # desapareciendo y se reduce la barra de vida un cuarto
+        for punto in puntaje:
+            linea_estrella = random.randrange(1, 4)
+            linea = 0
+            if linea_estrella == 1:
+                linea = 360
+            elif linea_estrella == 2:
+                linea = 460
+            elif linea_estrella == 3:
+                linea = 560
+            elif linea_estrella == 4:
+                linea = 660
+
+            estrella1 = Estrellas(linea)
+            lista_de_estrellas.add(estrella1)
+            sprites.add(estrella1)
+            puntos += 1
+            velocidad += 1
+
+    # Agrego el fondo de pantalla y agregue los "sprites"
+        pantalla.blit(fondo, [0, 0])
+        sprites.draw(pantalla)
+
+        dibujar_vida_nave(pantalla, 5, 5, nave.vida)
+    # Marcador
+        texto_en_pantalla(pantalla, 'Marcador: ' + str(puntos), 25, 73, 17)
+    # Muestre lo anterior en pantalla
+        pygame.display.flip()
+
+
+# Asigna la fuente indicada, en el tamaño indicado
+def obtener_fuente(tamaño):
+    return pygame.font.Font(carpeta + "/sprites/font.ttf", tamaño)
+
+
+# La opción jugar contiene el bucle que ejecuta el juego como tal
+def jugar():
+    bucle_principal()
+
+
+# Muestra las instrucciones del juego
+def instrucciones():
+    while True:
+        posicion_mouse = pygame.mouse.get_pos()
+
+        pantalla.fill(blanco)
+        texto = obtener_fuente(30).render("Instrucciones", True, negro)
+        cuadrado_texto = texto.get_rect(center=(ancho // 2, 260))
+        pantalla.blit(texto, cuadrado_texto)
+
+        regresar = Boton(imagen=None, pos=(ancho // 2, 460),
+                         texto_en="Regresar", fuente=obtener_fuente(25),
+                         color_base=negro)
+
+        regresar.actualizar(pantalla)
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                exit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if regresar.chequar_click(posicion_mouse):
+                    menu_principal()
+
+        pygame.display.update()
+
+
+def menu_principal():
+    while True:
+        pantalla.blit(menu, (0, 0))
+
+        posicion_mouse = pygame.mouse.get_pos()
+
+        texto = obtener_fuente(65).render("FUERA DEL RADAR", True, dorado)
+        cuadrado_texto = texto.get_rect(center=(ancho // 2, 100))
+
+        Boton_jugar = Boton(imagen=pygame.image.load(
+                    carpeta + "/sprites/Jugar_Rect.png"),
+                    pos=(ancho // 2, 250), texto_en="Jugar",
+                    fuente=obtener_fuente(40), color_base=verde)
+        Boton_instrucciones = Boton(imagen=pygame.image.load(
+                carpeta + "/sprites/INs_Rect.png"),
+                pos=(ancho // 2, 400),
+                texto_en="Instrucciones", fuente=obtener_fuente(40),
+                color_base=verde)
+        Boton_salir = Boton(imagen=pygame.image.load(
+                carpeta + "/sprites/Salir_Rect.png"),
+                pos=(ancho // 2, ancho // 2), texto_en="Salir",
+                fuente=obtener_fuente(40), color_base=verde)
+
+        pantalla.blit(texto, cuadrado_texto)
+
+        for boton in [Boton_jugar, Boton_instrucciones, Boton_salir]:
+            boton.actualizar(pantalla)
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                exit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if Boton_jugar.chequar_click(posicion_mouse):
+                    jugar()
+                if Boton_instrucciones.chequar_click(posicion_mouse):
+                    instrucciones()
+                if Boton_salir.chequar_click(posicion_mouse):
+                    pygame.quit()
+                    exit()
+
+        pygame.display.update()
+
+
+menu_principal()  # Se llama a la función que contine el menu
 pygame.quit()  # Finalización del juego
