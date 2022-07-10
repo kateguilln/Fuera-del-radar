@@ -31,6 +31,10 @@ pantalla = pygame.display.get_surface()
 fondo = pygame.image.load(carpeta + "/sprites/fondo.png").convert()
 # Imagen del menu
 menu = pygame.image.load(carpeta + "/sprites/menu.png").convert()
+# Imagen de fondo de las instrucciones y de la pantalla de fin del juego
+fondo_de_instrucciones = pygame.image.load(carpeta +
+                                           "/sprites/Fondo_Instrucciones"
+                                           ".png").convert()
 
 
 # Definición de función que se encarga de mostrar el texto en la pantalla
@@ -306,6 +310,7 @@ def bucle_principal():
         # Al detectar una colision se crea un nuevo asteroide, porque sino van
         # desapareciendo y se reduce la barra de vida un cuarto
         for colision in colisiones:
+            tipo = random.randrange(1, 4)
             linea_asteroide = random.randrange(1, 4)
             linea_x = 0
             if linea_asteroide == 1:
@@ -323,7 +328,49 @@ def bucle_principal():
             nave.vida -= 25
             # Si la vida de la nave es 0 o menor se acaba el juego
             if nave.vida <= 0:
-                exit()
+                # Se borran todos los asteroides y estrellas que
+                # quedan en la pantalla
+                for asteroide in lista_de_asteroides:
+                    asteroide.kill()
+                for asteroide in lista_de_estrellas:
+                    asteroide.kill()
+                # Se reinician los parametros
+                puntos = 0
+                velocidad = 3
+                puntos = 0
+                nave.vida = 100
+                # Se crean los asteroides y las estrellas para el siguiente
+                # juego
+                for asteroides in range(0, 5):
+                    tipo = random.randrange(1, 4)
+                    linea_asteroide = random.randrange(1, 4)
+                    linea = 0
+                    if linea_asteroide == 1:
+                        linea = 360
+                    elif linea_asteroide == 2:
+                        linea = 460
+                    elif linea_asteroide == 3:
+                        linea = 560
+                    elif linea_asteroide == 4:
+                        linea = 660
+                    astoroide1 = Asteroide(tipo, linea)
+                    lista_de_asteroides.add(astoroide1)
+                    sprites.add(astoroide1)
+                for estrella in range(0, 1):
+                    linea_estrella = random.randrange(1, 4)
+                    linea = 0
+                    if linea_estrella == 1:
+                        linea = 360
+                    elif linea_estrella == 2:
+                        linea = 460
+                    elif linea_estrella == 3:
+                        linea = 560
+                    elif linea_estrella == 4:
+                        linea = 660
+                    estrella1 = Estrellas(linea)
+                    lista_de_estrellas.add(estrella1)
+                    sprites.add(estrella1)
+                fin_del_juego()
     # Se verifican las colisiones entre los asteroides y la nave
         puntaje = pygame.sprite.spritecollide(nave, lista_de_estrellas, True)
         # Al detectar una colision se crea un nuevo asteroide, porque sino van
@@ -372,13 +419,55 @@ def instrucciones():
     while True:
         posicion_mouse = pygame.mouse.get_pos()
 
-        pantalla.fill(blanco)
+        pantalla.blit(fondo_de_instrucciones, (0, 0))
         texto = obtener_fuente(30).render("Instrucciones", True, negro)
-        cuadrado_texto = texto.get_rect(center=(ancho // 2, 260))
+        cuadrado_texto = texto.get_rect(center=(ancho // 2, 50))
+        pantalla.blit(texto, cuadrado_texto)
+        texto = obtener_fuente(15).render("-Conduce la nave espacial "
+                                          "sin chocar", True, negro)
+        cuadrado_texto = texto.get_rect(center=(311, 150))
+        pantalla.blit(texto, cuadrado_texto)
+        texto = obtener_fuente(15).render("-Muevete hacia los lados con las "
+                                          "flechas", True, negro)
+        cuadrado_texto = texto.get_rect(center=(342, 250))
+        pantalla.blit(texto, cuadrado_texto)
+        texto = obtener_fuente(15).render("-Obten estrellas para aumentar tu "
+                                          "puntaje y acelerar el juego",
+                                          True, negro)
+        cuadrado_texto = texto.get_rect(center=(500, 350))
         pantalla.blit(texto, cuadrado_texto)
 
         regresar = Boton(imagen=None, pos=(ancho // 2, 460),
                          texto_en="Regresar", fuente=obtener_fuente(25),
+                         color_base=negro)
+
+        regresar.actualizar(pantalla)
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                exit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if regresar.chequar_click(posicion_mouse):
+                    menu_principal()
+
+        pygame.display.update()
+
+
+# Muestra la pantalla del fin del juego
+def fin_del_juego():
+    while True:
+        posicion_mouse = pygame.mouse.get_pos()
+
+        pantalla.blit(fondo_de_instrucciones, (0, 0))
+        texto = obtener_fuente(30).render("Fin del juego", True, negro)
+        cuadrado_texto = texto.get_rect(center=(ancho // 2, 260))
+        pantalla.blit(texto, cuadrado_texto)
+
+        regresar = Boton(imagen=pygame.image.load(
+                         carpeta + "/sprites/Jugar_Rect.png"),
+                         pos=(ancho // 2, 460), texto_en="Regresar",
+                         fuente=obtener_fuente(25),
                          color_base=negro)
 
         regresar.actualizar(pantalla)
