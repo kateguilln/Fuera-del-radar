@@ -6,11 +6,10 @@ import random
 import os
 
 # Variables globales
-velocidad = 3
+velocidad = 2
 puntos = 0
 
 # Colores
-blanco = (0, 0, 0)
 negro = (255, 255, 255)
 dorado = (182, 143, 64)
 verde = (215, 252, 212)
@@ -33,8 +32,7 @@ fondo = pygame.image.load(carpeta + "/sprites/fondo.png").convert()
 menu = pygame.image.load(carpeta + "/sprites/menu.png").convert()
 # Imagen de fondo de las instrucciones y de la pantalla de fin del juego
 fondo_de_instrucciones = pygame.image.load(carpeta +
-                                           "/sprites/Fondo_Instrucciones"
-                                           ".png").convert()
+                                           "/sprites/Background.png").convert()
 
 
 # Definición de función que se encarga de mostrar el texto en la pantalla
@@ -124,19 +122,39 @@ class Asteroide(pygame.sprite.Sprite):
 
         global velocidad
 
+        self.size = (50, 50)
+
+        self.image = pygame.transform.rotate(pygame.transform.scale(
+            pygame.image.load(carpeta + "/sprites/obs1.png")
+            .convert_alpha(), self.size), 180)
+        self.rect = self.image.get_rect()
+        self.mask = pygame.mask.from_surface(self.image)
+
+        self.rect = self.image.get_rect()
         self.tipo = tipo
-        self.linea = linea
+        
+        self.linea = linea_asteroide
 # Definición de la imagen
-        self.image = pygame.image.load(carpeta +
-                                       "/sprites/obs1.png"
-                                       ).convert()
+        if self.linea == 1:
+            self.image = (pygame.image.load(carpeta +
+                                        "/sprites/obs1.png"
+                                        ).convert_alpha())
+        elif self.linea == 2:
+            self.image = (pygame.image.load(carpeta +
+                                        "/sprites/obs2.png"
+                                        ).convert_alpha())
+        elif self.linea == 3:
+            self.image = (pygame.image.load(carpeta +
+                                        "/sprites/obs3.png"
+                                        ).convert_alpha())
+
+
 # Comando para eliminar fondo negro de la imagen
         self.image.set_colorkey((0, 0, 0))
 # Obtener el cuadrado alrededor de la imagen
         self.rect = self.image.get_rect()
 # Definir ubicación en x
         self.rect.x = self.linea
-# Definir ubicación en y
         self.rect.y = -100
 # Definir velocidad
         self.velocidad = velocidad
@@ -148,8 +166,7 @@ class Asteroide(pygame.sprite.Sprite):
     def movimiento_frente(self):
         self.rect.y += self.velocidad
         if self.rect.top > altura + 10:
-            linea_asteroide = random.randrange(1, 4)
-            linea = 0
+            linea_asteroide = random.randrange(1, 5)
             if linea_asteroide == 1:
                 linea = 370
             elif linea_asteroide == 2:
@@ -195,10 +212,9 @@ class Estrellas(pygame.sprite.Sprite):
     def movimiento_frente(self):
         self.rect.y += self.velocidad
 # Parte de la funcion que hace que vuelvan a aparecer los asteroides
-# Esta parte se usa varias veces por lo que seria mejor volverlo una funcion
+
         if self.rect.top > altura + 10:
-            linea_estrella = random.randrange(1, 4)
-            linea = 0
+            linea_estrella = random.randrange(1, 5)
             if linea_estrella == 1:
                 linea = 360
             elif linea_estrella == 2:
@@ -216,15 +232,13 @@ class Estrellas(pygame.sprite.Sprite):
 # Definición de la lista de estrellas en la clase Group()
 lista_de_estrellas = pygame.sprite.Group()
 
-
 # Parte del codigo que crea los asteroides por primera vez
 
 for asteroides in range(0, 5):
-    # Se elige el tipo de asteroide, esto aun NO hace nada
+    # Se elige el tipo de asteroide
     tipo = random.randrange(1, 4)
-    # Se elige la linea por la que ira de asteroide, esto aun NO hace nada
-    linea_asteroide = random.randrange(1, 4)
-    linea = 0
+    # Se elige la linea por la que ira el asteroide
+    linea_asteroide = random.randrange(1, 5)
     if linea_asteroide == 1:
         linea = 360
     elif linea_asteroide == 2:
@@ -240,9 +254,8 @@ for asteroides in range(0, 5):
     sprites.add(astoroide1)  # Agregar el astoroide1 a los sprites
 
 for estrella in range(0, 1):
-    # Se elige la linea por la que ira de asteroide, esto aun NO hace nada
-    linea_estrella = random.randrange(1, 4)
-    linea = 0
+    # Se elige la linea por la que ira la estrella
+    linea_estrella = random.randrange(1, 5)
     if linea_estrella == 1:
         linea = 360
     elif linea_estrella == 2:
@@ -282,15 +295,15 @@ class Boton():
         pantalla.blit(self.text, self.text_rect)
 
     def chequar_click(self, posicion):  # Compprueba si el botón fue clickeado
-        if (posicion[0] in range(self.rect.left, self.rect.right)
-                and posicion[1] in range(self.rect.top, self.rect.bottom)):
+        if (posicion[0] in range(self.rect.left, self.rect.right) and
+                posicion[1] in range(self.rect.top, self.rect.bottom)):
             return True
         return False
 
 
 # Esta función contiene el bucle principal de funcionamiento del juego
 def bucle_principal():
-    global puntos, velocidad
+    global puntos, velocidad, lista_de_asteroides, lista_de_estrellas
     while True:
         reloj.tick(80)  # Velocidad de movimiento de la nave en fps
         for evento in pygame.event.get():
@@ -311,8 +324,7 @@ def bucle_principal():
         # desapareciendo y se reduce la barra de vida un cuarto
         for colision in colisiones:
             tipo = random.randrange(1, 4)
-            linea_asteroide = random.randrange(1, 4)
-            linea_x = 0
+            linea_asteroide = random.randrange(1, 5)
             if linea_asteroide == 1:
                 linea_x = 360
             elif linea_asteroide == 2:
@@ -343,8 +355,7 @@ def bucle_principal():
                 # juego
                 for asteroides in range(0, 5):
                     tipo = random.randrange(1, 4)
-                    linea_asteroide = random.randrange(1, 4)
-                    linea = 0
+                    linea_asteroide = random.randrange(1, 5)
                     if linea_asteroide == 1:
                         linea = 360
                     elif linea_asteroide == 2:
@@ -357,8 +368,7 @@ def bucle_principal():
                     lista_de_asteroides.add(astoroide1)
                     sprites.add(astoroide1)
                 for estrella in range(0, 1):
-                    linea_estrella = random.randrange(1, 4)
-                    linea = 0
+                    linea_estrella = random.randrange(1, 5)
                     if linea_estrella == 1:
                         linea = 360
                     elif linea_estrella == 2:
@@ -376,8 +386,7 @@ def bucle_principal():
         # Al detectar una colision se crea un nuevo asteroide, porque sino van
         # desapareciendo y se reduce la barra de vida un cuarto
         for punto in puntaje:
-            linea_estrella = random.randrange(1, 4)
-            linea = 0
+            linea_estrella = random.randrange(1, 5)
             if linea_estrella == 1:
                 linea = 360
             elif linea_estrella == 2:
@@ -391,7 +400,7 @@ def bucle_principal():
             lista_de_estrellas.add(estrella1)
             sprites.add(estrella1)
             puntos += 1
-            velocidad += 1
+            velocidad += 0.3
 
     # Agrego el fondo de pantalla y agregue los "sprites"
         pantalla.blit(fondo, [0, 0])
@@ -436,8 +445,13 @@ def instrucciones():
                                           True, negro)
         cuadrado_texto = texto.get_rect(center=(500, 350))
         pantalla.blit(texto, cuadrado_texto)
+        texto = obtener_fuente(15).render("-Cuidado con las trampas, pueden "
+                                          "afectar tu vida",
+                                          True, negro)
+        cuadrado_texto = texto.get_rect(center=(395, 450))
+        pantalla.blit(texto, cuadrado_texto)
 
-        regresar = Boton(imagen=None, pos=(ancho // 2, 460),
+        regresar = Boton(imagen=None, pos=(ancho // 2, 550),
                          texto_en="Regresar", fuente=obtener_fuente(25),
                          color_base=negro)
 
@@ -465,7 +479,7 @@ def fin_del_juego():
         pantalla.blit(texto, cuadrado_texto)
 
         regresar = Boton(imagen=pygame.image.load(
-                         carpeta + "/sprites/Jugar_Rect.png"),
+                         carpeta + "/sprites/Play Rect.png"),
                          pos=(ancho // 2, 460), texto_en="Regresar",
                          fuente=obtener_fuente(25),
                          color_base=negro)
@@ -493,16 +507,16 @@ def menu_principal():
         cuadrado_texto = texto.get_rect(center=(ancho // 2, 100))
 
         Boton_jugar = Boton(imagen=pygame.image.load(
-                    carpeta + "/sprites/Jugar_Rect.png"),
+                    carpeta + "/sprites/Play Rect.png"),
                     pos=(ancho // 2, 250), texto_en="Jugar",
                     fuente=obtener_fuente(40), color_base=verde)
         Boton_instrucciones = Boton(imagen=pygame.image.load(
-                carpeta + "/sprites/INs_Rect.png"),
+                carpeta + "/sprites/Options Rect.png"),
                 pos=(ancho // 2, 400),
                 texto_en="Instrucciones", fuente=obtener_fuente(40),
                 color_base=verde)
         Boton_salir = Boton(imagen=pygame.image.load(
-                carpeta + "/sprites/Salir_Rect.png"),
+                carpeta + "/sprites/Quit Rect.png"),
                 pos=(ancho // 2, ancho // 2), texto_en="Salir",
                 fuente=obtener_fuente(40), color_base=verde)
 
